@@ -1,0 +1,60 @@
+version: '2'
+
+volumes:
+  schscraper_syncs:
+    external: true
+
+services:
+
+  nginx:
+    image: nginx
+    container_name: "schScraper-nginx"
+    ports:
+      - "80:80"
+    volumes:
+      #- ./svr:/svr
+      - schscraper_syncs:/svr
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./weblog:/var/log/nginx
+    depends_on:
+      - phpfpm
+
+  phpfpm:
+    build: ./phpfpm
+    container_name: "schScraper-php"
+    volumes:
+      #- ./svr:/svr
+#      - ./applog:/svr/app/storage/logs
+       - schscraper_syncs:/svr
+    depends_on:
+      - pgsql
+      - redis
+      - mailhog
+
+  pgsql:
+    restart: always
+    image: postgres:11-alpine
+    container_name: "schScraper-postgres"
+    environment:
+      POSTGRES_USER: pgusr
+      POSTGRES_PASSWORD: pgpwd
+    volumes:
+      - ./db:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    container_name: "schScraper-redis"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  adminer:
+    image: adminer:4.6
+    container_name: "adminer"
+    ports:
+      - "8090:8080"
+    depends_on:
+      - pgsql

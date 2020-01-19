@@ -1,0 +1,9 @@
+version: '2'
+
+options:
+  compose-dev-file-path: 'docker-compose.yml'
+
+syncs:
+  schscraper_syncs:
+    src: './svr'
+    sync_strategy: 'unison'
